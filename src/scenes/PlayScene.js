@@ -1,10 +1,10 @@
 import Phaser from "phaser";
+import BaseScene from "./BaseScene";
 
 const PIPES_TO_RENDER = 4;
-class PlayScene extends Phaser.Scene {
+class PlayScene extends BaseScene {
   constructor(config) {
-    super('PlayScene');
-    this.config = config;
+    super('PlayScene', config);
     this.bird = null;
     this.pipes = null;
     this.pipeVerticalDistanceRage = [150, 250];
@@ -13,29 +13,45 @@ class PlayScene extends Phaser.Scene {
     this.score = null;
     this.scoreText = '';
   }
-  preload() {
-    this.load.image('sky', 'assets/sky.png');
-    this.load.image('bird', 'assets/bird.png');
-    this.load.image('pipe', 'assets/pipe.png');
-    this.load.image('pause', 'assets/pause.png');
-
-  }
   create() {
-    this.createBG();
+    super.create();
     this.createBird();
     this.createPipes();
     this.createPause();
     this.createColliders();
     this.handleInputs();
     this.createScore();
-
+    this.listenToEvents();
   }
   update() {
     this.checkGameStatus();
     this.recyclePipes();
   }
-  createBG() {
-    this.add.image(0, 0, 'sky').setOrigin(0);
+  listenToEvents() {
+    if(this.pauseEvent)
+    {
+      return;
+    }
+
+    this.pauseEvent = this.events.on('resume', () => {
+      this.initialTime = 3;
+      this.countDownText = this.add.text(...this.screenCenter, 'Fly in: ' + this.initialTime, this.fontOptions).setOrigin(0.5);
+      this.timedEvent = this.time.addEvent({
+        delay: 1000,
+        callback: this.countDown,
+        callbackScope: this,
+        loop: true
+      })
+    })
+  }
+  countDown() {
+    this.initialTime--;
+    this.countDownText.setText('Fly in: ' + this.initialTime);
+    if (this.initialTime <= 0) {
+      this.countDownText.setText('');
+      this.physics.resume();
+      this.timedEvent.remove();
+    }
   }
   createBird() {
     this.bird = this.physics.add.sprite(this.config.startPosition.x, this.config.startPosition.y, 'bird').setOrigin(0);
@@ -65,6 +81,7 @@ class PlayScene extends Phaser.Scene {
     pauseButton.on('pointerdown', () => {
       this.physics.pause();
       this.scene.pause();
+      this.scene.launch('PauseScene');
     })
   }
 

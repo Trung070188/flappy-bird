@@ -9,11 +9,9 @@ class ScoreScene extends BaseScene {
   }
 
   create() {
-    super.create();
-
+    super.create()
     const bestScore = localStorage.getItem('bestScore');
-    this.add.text(...this.screenCenter, `Best Score: ${bestScore || 0}`, this.fontOptions)
-      .setOrigin(0.5)
+    this.add.text(...this.screenCenter, `Best Score: ${bestScore || 0}`, this.fontOptions).setOrigin(0.5 ,1);
   }
 }
 
